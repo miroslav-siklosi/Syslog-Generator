@@ -1,7 +1,7 @@
 """
 Cisco ASA Syslogs Generator for Anomaly Detection
 
-IT License
+MIT License
 
 Copyright (c) 2020 Miroslav Siklosi
 
