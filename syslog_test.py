@@ -5,13 +5,9 @@ Cisco ASA Syslogs Generator for Anomaly Detection
 """
 import time
 import datetime
+import random
 import sys
 from faker import Faker
-
-'''
-Mar 31 2020 01:15:47 ASAX-RDS-FWHA01 : %ASA-4-419002: Duplicate TCP SYN from 
-Outside:156.154.76.154/35776 to Outside:BBMWPUAG51-Ext/443 with different initial sequence number
-'''
 
 class logTemplates:
     anomalous_messages = [
@@ -21,9 +17,9 @@ class logTemplates:
         "%ASA-1-106101: Number of cached deny-flows for ACL log has reached limit (100000).",
         "%ASA-1-107001: RIP auth failed from {source_address} : version=2, type=string, mode=string, sequence=number on interface {interface_name}",
         "%ASA-1-107002: RIP pkt failed from {source_address} : version=2 on interface {interface_name}",
-        "%ASA-2-108003: Terminating SMTP connection; malicious pattern detected in the mail address from {source_interface}:{source_address}/{source_port} to {dest_interface}:{dest_address}/{dset_port}.",
-        "%ASA-2-108003: Terminating ESMTP connection; malicious pattern detected in the mail address from {source_interface}:{source_address}/{source_port} to {dest_interface}:{dest_address}/{dset_port}.",
-        "%ASA-4-109017: User at {source_address} exceeded auth proxy connection limit ({1000}).",
+        "%ASA-2-108003: Terminating SMTP connection; malicious pattern detected in the mail address from {interface_name}:{source_address}/{source_port} to {interface_name}:{dest_address}/{dest_port}.",
+        "%ASA-2-108003: Terminating ESMTP connection; malicious pattern detected in the mail address from {interface_name}:{source_address}/{source_port} to {interface_name}:{dest_address}/{dest_port}.",
+        "%ASA-4-109017: User at {source_address} exceeded auth proxy connection limit (1000).",
         "%ASA-2-201003: Embryonic limit exceeded 748/500 for {remote_address}/{dest_port} 8.8.8.8 {local_address}/{source_port} on interface {interface_name}.",
         "%ASA-6-201012: Per-client embryonic connection limit exceeded curr 135/100 for input packet from {source_address}/{source_port} to {dest_address}/{dest_port} on interface {interface_name}.",
         "%ASA-6-201012: Per-client embryonic connection limit exceeded curr 168/100 for output packet from {source_address}/{source_port} to {dest_address}/{dest_port} on interface {interface_name}.",
@@ -35,8 +31,8 @@ class logTemplates:
         "%ASA-3-322002: ARP inspection check failed for arp request received from host {MAC_address} on interface {interface_name}. This host is advertising MAC Address {MAC_address} for IP Address {source_address}, which is dynamically bound to MAC Address {MAC_address}.",
         "%ASA-3-322002: ARP inspection check failed for arp response received from host {MAC_address} on interface {interface_name}. This host is advertising MAC Address {MAC_address} for IP Address {source_address}, which is statically bound to MAC Address {MAC_address}.",
         "%ASA-3-322002: ARP inspection check failed for arp response received from host {MAC_address} on interface {interface_name}. This host is advertising MAC Address {MAC_address} for IP Address {source_address}, which is dynamically bound to MAC Address {MAC_address}.",
-        "%ASA-3-322003: ARP inspection check failed for arp request received from host {MAC_address} on interface {interface_name}. This host is advertising MAC Address {MAC_address} for IP Address {source_address}, which is not bound to any {MAC Address}",
-        "%ASA-3-322003: ARP inspection check failed for arp response received from host {MAC_address} on interface {interface_name}. This host is advertising MAC Address {MAC_address} for IP Address {source_address}, which is not bound to any {MAC Address}",
+        "%ASA-3-322003: ARP inspection check failed for arp request received from host {MAC_address} on interface {interface_name}. This host is advertising MAC Address {MAC_address} for IP Address {source_address}, which is not bound to any {MAC_address}",
+        "%ASA-3-322003: ARP inspection check failed for arp response received from host {MAC_address} on interface {interface_name}. This host is advertising MAC Address {MAC_address} for IP Address {source_address}, which is not bound to any {MAC_address}",
         "%ASA-4-400007: IPS:1100 IP Fragment Attack from {source_address} to {dest_address} on interface {interface_name}",
         "%ASA-4-400008: IPS:1102 IP Impossible Packet from {source_address} to {dest_address} on interface {interface_name}",
         "%ASA-4-400009: IPS:1103 IP Fragments Overlap from {source_address} to {dest_address} on interface {interface_name}",
@@ -53,12 +49,12 @@ class logTemplates:
         "%ASA-4-400033: IPS:4052 UDP Chargen DoS attack from {source_address} to {dest_address} on interface {interface_name}",
         "%ASA-4-400041: IPS:6103 Proxied RPC Request from {source_address} to {dest_address} on interface {interface_name}",
         "%ASA-4-400050: IPS:6190 statd Buffer Overflow from {source_address} to {dest_address} on interface {interface_name}",
-        "%ASA-5-402128: CRYPTO: An attempt to allocate a large memory block failed, size: {300000000} , limit: 100000000",
+        "%ASA-5-402128: CRYPTO: An attempt to allocate a large memory block failed, size: 300000000 , limit: 100000000",
         "%ASA-4-405001: Received ARP request collision from {source_address}/{MAC_address} on interface {interface_name} with existing ARP entry {dest_address}/{MAC_address}.",
         "%ASA-4-405001: Received ARP response collision from {source_address}/{MAC_address} on interface {interface_name} with existing ARP entry {dest_address}/{MAC_address}.",
         "%ASA-4-405002: Received mac mismatch collision from {source_address}/{MAC_address} for authenticated host",
         "%ASA-2-410002: Dropped num DNS responses with mis-matched id in the past 10 second(s): from {interface_name}:{source_address}/{source_port} to {interface_name}:{dest_address}/{dest_port}",
-        "%ASA-4-419002: Received duplicate TCP SYN from {interface_name}:{src_address}/{source_port} to {interface_name}:{dest_address}/{dest_port} with different initial sequence number.",
+        "%ASA-4-419002: Received duplicate TCP SYN from {interface_name}:{source_address}/{source_port} to {interface_name}:{dest_address}/{dest_port} with different initial sequence number.",
         "%ASA-6-605004: Login denied from {source_address}/{source_port} to {interface_name}:{dest_address}/{service} for user {user}",
         "%ASA-3-710003: TCP access denied by ACL from {source_address}/{source_port} to {interface_name}:{dest_address}/{service}",
         "%ASA-3-710003: UDP access denied by ACL from {source_address}/{source_port} to {interface_name}:{dest_address}/{service}",
@@ -104,7 +100,7 @@ class logTemplates:
         "%ASA-3-212004: Unable to send an SNMP response to IP Address {source_address} Port {source_port} interface {interface_name} , error code = Unavailable",
         "%ASA-6-302003: Built H245 connection for foreign_address {remote_address}/{dest_port} local_address {local_address} /{source_port}",
         "%ASA-6-302033: Pre-allocated H323 GUP Connection for faddr {interface_name}: {remote_address}/{dest_port} to laddr {interface_name}: {local_address}/{source_port}",
-        "%ASA-6-303002: FTP connection from {interface_name}:{source_address}/{source_port} to {interface_name}: {dest_address}/{dest_port} , user {user} action file {filename}",
+        "%ASA-6-303002: FTP connection from {interface_name}:{source_address}/{source_port} to {interface_name}: {dest_address}/{dest_port} , user {user} action file filename",
         "%ASA-3-304003: URL Server {source_address} timed out URL {url}",
         "%ASA-6-304004: URL Server {source_address} request failed URL {url}",
         "%ASA-6-314004: RTSP client {interface_name}: {source_address} accessed RTSP URL {url}",
@@ -174,44 +170,84 @@ class logTemplates:
         "%ASA-7-718022: Received KEEPALIVE request from {source_address}",
         "%ASA-7-718023: Received KEEPALIVE response from {source_address}",
         ]
-   
-def get_messages(log_type: LogType): 
-    if not isinstance(log_type, LogType): 
-        sys \ 
-            .exit("Used wrong type of logs. Used: {}. You can use: {}. Additional info: please, use enum LogType." 
-                  .format(log_type, LogType.get_all_names())) 
- 
-    if log_type == LogType.anomalous: 
-        return logTemplates.anomalous_messages 
-    elif log_type == LogType.informational: 
-        return logTemplates.informational_messages
-    
-def get_percentage_message(self, percentage: int, log_type: LogType): 
-	message_templates = self.get_messages(log_type) 
-	message = random.choice(message_templates) 
-	try: 
-		return message.format(percentage) 
-	# generating log without information about usage 
-	except IndexError: 
-		return message
-    
-faker = Faker()  
-ip_addr = faker.ipv4() 
 
+def generate_ip_address():
+    ip_addr = Faker().ipv4()
+    return ip_addr
 
-def generate_logs(self, param_count_of_logs: int): 
-        """ 
-        :return:  
-        """ 
-        logs: list = [] 
-        for number in range(param_count_of_logs): 
-            now = datetime.now().strftime("%Y-%m-%d %H:%M:%S") # TODO: adjust datetime
-            device = random.choice()
-            logs.append(Log(now, self.get_percentage_message(random.randint(20, 100), LogType.anomalous), "Device" + str(number + 1))) 
-            logs.append(Log(now, self.get_percentage_message(random.randint(20, 100), LogType.informational), "Device" + str(number + 1))) 
-        return logs 
+def generate_interface_name():
+    return f"GigabitEthernet0/{random.randint(0, 5)}"
+
+def generate_port():
+    return random.randint(1, 65535)
+
+def generate_user():
+    return f"user{random.randint(1, 20)}"
+
+def generate_url():
+    return Faker().url()
+
+def generate_local_address():
+    return Faker().ipv4(private=True)
+
+def generate_remote_address():
+    return Faker().ipv4(private=False)
+
+def generate_mac_address():
+    return Faker().mac_address()
+
+def generate_number():
+    return random.randint(1, 9999)
+
+def generate_service():
+    return random.choice(("DNS", "SMTP", "DHCP", "NTP"))
+
+def pick_message():
+    x = random.randint(1, 5)
+    if x == 1:
+        return random.choice(logTemplates.anomalous_messages), True
+    else:
+        return random.choice(logTemplates.informational_messages), False
+
+def fill_message(message):
+    generators = {"source_address": generate_ip_address,
+                      "dest_address": generate_ip_address,
+                      "interface_name": generate_interface_name,
+                      "source_port": generate_port,
+                      "dest_port": generate_port,
+                      "local_address": generate_local_address,
+                      "remote_address": generate_remote_address,
+                      "user": generate_user,
+                      "url": generate_url,
+                      "mac_address": generate_mac_address,
+                      "number": generate_number,
+                      "service": generate_service}
     
-    
-    
-    
-    
+    parts = message.split("{")
+    result = ""
+    for part in parts:
+        #print(token)
+        if "}" in part:
+            value_type, rest = part.split("}")
+            value = generators[value_type.lower()]()
+            result += str(value) + rest
+        else:
+            result += part
+    return result
+
+def generate_logs(logs_count: int, add_label):     
+        logs = []
+        for number in range(logs_count): 
+            now = datetime.datetime.now().strftime("%b %d %Y %H:%M:%S")
+            message, is_anomaly = pick_message()
+            filled_message = fill_message(message)
+            if add_label:
+                filled_message = f"{filled_message}\t{int(is_anomaly)}"
+            device = f"FW{str(random.randint(0, 25)).zfill(2)}"
+            log = f"{now} {device} : {filled_message}"
+            logs.append(log) 
+        return logs
+          
+logs = generate_logs(1000000, True)
+with open("logs.txt", "w") as logs_file:
+    logs_file.writelines('\n'.join(logs))
