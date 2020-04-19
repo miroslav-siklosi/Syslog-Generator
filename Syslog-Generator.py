@@ -23,10 +23,8 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
-import time
 import datetime
 import random
-import sys
 from faker import Faker
 
 class logTemplates:
@@ -255,19 +253,30 @@ def fill_message(message):
             result += part
     return result
 
+def generate_log(add_label):
+    now = datetime.datetime.now().strftime("%b %d %Y %H:%M:%S")
+    message, is_anomaly = pick_message()
+    filled_message = fill_message(message)
+    if add_label:
+        filled_message = f"{filled_message}\t{int(is_anomaly)}"
+    device = f"FW{str(random.randint(0, 25)).zfill(2)}"
+    log = f"{now} {device} : {filled_message}"
+    return log
+
+
 def generate_logs(logs_count: int, add_label):     
         logs = []
-        for number in range(logs_count): 
-            now = datetime.datetime.now().strftime("%b %d %Y %H:%M:%S")
-            message, is_anomaly = pick_message()
-            filled_message = fill_message(message)
-            if add_label:
-                filled_message = f"{filled_message}\t{int(is_anomaly)}"
-            device = f"FW{str(random.randint(0, 25)).zfill(2)}"
-            log = f"{now} {device} : {filled_message}"
+        for _ in range(logs_count): 
+            log = generate_log(add_label)
             logs.append(log) 
         return logs
+
+
+def generate_logs_file(log_count, add_label, filename):
+    with open(filename, "w") as logs_file:
+        for i in range(log_count):
+            print(f"Generating log number {i}")
+            log = f"{generate_log(add_label)}\n"
+            logs_file.writelines((log))
           
-logs = generate_logs(1000000, True)
-with open("logs.txt", "w") as logs_file:
-    logs_file.writelines('\n'.join(logs))
+generate_logs_file(10000, True, "logs.txt")
