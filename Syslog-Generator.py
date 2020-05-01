@@ -292,7 +292,6 @@ def generate_logs_file(log_count, add_label, gen_unseen, filename):
             log = f"{generate_log(add_label, gen_unseen)}\n"
             logs_file.writelines((log))
           
-
 parser = argparse.ArgumentParser(prog="generator.py")
 parser.add_argument("--number", dest="number", type=int, required=True, default=1000)
 parser.add_argument("--labelled", dest="labelled", choices=["yes", "no"], required=False, default="yes")
