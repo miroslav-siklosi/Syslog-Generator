@@ -26,6 +26,7 @@ SOFTWARE.
 import datetime
 import random
 from faker import Faker
+import argparse
 
 class logTemplates:
     anomalous_messages = [
@@ -230,7 +231,14 @@ def pick_message():
         return random.choice(logTemplates.anomalous_messages), True
     else:
         return random.choice(logTemplates.informational_messages), False
-
+    
+def pick_unseen_message():
+    x = random.randint(1, 5)
+    if x == 1:
+        return random.choice(logTemplates.anomalous_unseen + logTemplates.anomalous_messages), True
+    else:
+        return random.choice(logTemplates.informational_unseen + logTemplates.informational_messages), False
+    
 def fill_message(message):
     generators = {"source_address": generate_ip_address,
                       "dest_address": generate_ip_address,
@@ -256,32 +264,41 @@ def fill_message(message):
             result += part
     return result
 
-def generate_log(add_label):
+def generate_log(add_label, gen_unseen):
     now = datetime.datetime.now().strftime("%b %d %Y %H:%M:%S")
     if add_label:
-        message, is_anomaly = pick_message()
-    else:
-        message = random.choice(logTemplates.unseen_messages)
-	
-    filled_message = fill_message(message)
-    if add_label:
+        if gen_unseen: # add_label == True and gen_unseen == True
+            message, is_anomaly = pick_unseen_message()            
+        else: # add_label == True and gen_unseen == False
+            message, is_anomaly = pick_message()
+        filled_message = fill_message(message)
         filled_message = f"{filled_message}\t{int(is_anomaly)}"
+
+    else: # add_label == False
+        if gen_unseen: # add_label == False and gen_unseen == True
+            message, is_anomaly = pick_unseen_message()  
+        else: # add_label == False and gen_unseen == False
+            message, is_anomaly = pick_message()
+        filled_message = fill_message(message)
+    
     device = f"FW{str(random.randint(0, 25)).zfill(2)}"
     log = f"{now} {device} : {filled_message}"
     return log
 
-def generate_logs(logs_count: int, add_label):     
-        logs = []
-        for _ in range(logs_count): 
-            log = generate_log(add_label)
-            logs.append(log) 
-        return logs
-
-def generate_logs_file(log_count, add_label, filename):
+def generate_logs_file(log_count, add_label, gen_unseen, filename):
     with open(filename, "w") as logs_file:
         for i in range(log_count):
-            print(f"Generating log number {i}")
-            log = f"{generate_log(add_label)}\n"
+            print(f"Generating log number {i}") # TODO: Remove before publishing
+            log = f"{generate_log(add_label, gen_unseen)}\n"
             logs_file.writelines((log))
           
-generate_logs_file(1000000, True, "logs.txt")
+
+parser = argparse.ArgumentParser(prog="generator.py")
+parser.add_argument("--number", dest="number", type=int, required=True, default=1000)
+parser.add_argument("--labelled", dest="labelled", choices=["yes", "no"], required=False, default="yes")
+parser.add_argument("--unseen", dest="unseen", choices=["yes", "no"], required=False, default="no")
+
+args = parser.parse_args()
+
+generate_logs_file(args.number, args.labelled == "yes", args.unseen == "yes", "logs.txt")
+    
