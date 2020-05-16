@@ -226,18 +226,18 @@ def generate_service():
     return random.choice(("DNS", "SMTP", "DHCP", "NTP"))
 
 def pick_message():
-    x = random.randint(1, 5)
+    x = random.randint(1, 20)
     if x == 1:
         return random.choice(logTemplates.anomalous_messages), True
     else:
         return random.choice(logTemplates.informational_messages), False
     
 def pick_unseen_message():
-    x = random.randint(1, 5)
+    x = random.randint(1, 20)
     if x == 1:
-        return random.choice(logTemplates.anomalous_unseen + logTemplates.anomalous_messages), True
+        return random.choice(logTemplates.anomalous_unseen), True
     else:
-        return random.choice(logTemplates.informational_unseen + logTemplates.informational_messages), False
+        return random.choice(logTemplates.informational_unseen), False
     
 def fill_message(message):
     generators = {"source_address": generate_ip_address,
@@ -281,23 +281,23 @@ def generate_log(add_label, gen_unseen):
             message, is_anomaly = pick_message()
         filled_message = fill_message(message)
     
-    device = f"FW{str(random.randint(0, 25)).zfill(2)}"
-    log = f"{now} {device} : {filled_message}"
+    device = f"FW{str(random.randint(0, 25)).zfill(2)}" # generate device name
+    log = f"{now} {device} : {filled_message}" # compose syslog message
     return log
 
 def generate_logs_file(log_count, add_label, gen_unseen, filename):
     with open(filename, "w") as logs_file:
         for i in range(log_count):
-            print(f"Generating log number {i}") # TODO: Remove before publishing
+ #           print(f"Generating log number {i}") # TODO: Remove before publishing
             log = f"{generate_log(add_label, gen_unseen)}\n"
             logs_file.writelines((log))
           
-parser = argparse.ArgumentParser(prog="generator.py")
-parser.add_argument("--number", dest="number", type=int, required=True, default=1000)
+parser = argparse.ArgumentParser(prog="syslog_generator.py")
+parser.add_argument("--number", dest="number", type=int, required=False, default=100)
 parser.add_argument("--labelled", dest="labelled", choices=["yes", "no"], required=False, default="yes")
 parser.add_argument("--unseen", dest="unseen", choices=["yes", "no"], required=False, default="no")
 
 args = parser.parse_args()
 
-generate_logs_file(args.number, args.labelled == "yes", args.unseen == "yes", "logs.txt")
+generate_logs_file(args.number, args.labelled, args.unseen, "logs.txt")
     
