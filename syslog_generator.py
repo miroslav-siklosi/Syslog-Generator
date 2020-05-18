@@ -299,5 +299,5 @@ parser.add_argument("--unseen", dest="unseen", choices=["yes", "no"], required=F
 
 args = parser.parse_args()
 
-generate_logs_file(args.number, args.labelled, args.unseen, "logs.txt")
+generate_logs_file(int(args.number), args.labelled == "yes", args.unseen == "yes", "logs.csv")
     

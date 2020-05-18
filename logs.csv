@@ -1,0 +1,10 @@
+May 18 2020 18:02:02 FW20 : %ASA-3-319001: Acknowledge for arp update for IP address 169.91.255.60 not received.	0
+May 18 2020 18:02:02 FW01 : %ASA-4-400040: IPS:6102 RPC Dump 11.156.212.51 to 41.215.4.240 on interface GigabitEthernet0/5	0
+May 18 2020 18:02:02 FW25 : %ASA-6-605005: Login permitted from 113.20.21.162/53083 to GigabitEthernet0/4:13.65.167.106/DNS for user user12	0
+May 18 2020 18:02:02 FW04 : %ASA-6-303002: FTP connection from GigabitEthernet0/5:181.23.250.144/51362 to GigabitEthernet0/5: 49.45.191.218/49567 , user user5 action file filename	0
+May 18 2020 18:02:02 FW13 : %ASA-4-411004: Configuration status on interface GigabitEthernet0/5 changed state to up	0
+May 18 2020 18:02:02 FW02 : %ASA-4-405001: Received ARP response collision from 90.216.200.43/24:1b:b9:e9:9f:5d on interface GigabitEthernet0/3 with existing ARP entry 111.13.80.111/a0:01:2b:31:64:56.	1
+May 18 2020 18:02:03 FW20 : %ASA-6-302033: Pre-allocated H323 GUP Connection for faddr GigabitEthernet0/0: 30.87.67.4/24670 to laddr GigabitEthernet0/5: 192.168.60.205/38852	0
+May 18 2020 18:02:03 FW19 : %ASA-7-718021: Sent KEEPALIVE response to 75.97.32.46	0
+May 18 2020 18:02:03 FW23 : %ASA-5-611103: User logged out: Uname: user18	0
+May 18 2020 18:02:03 FW14 : %ASA-4-400005: IPS:1005 IP options-SATNET ID 6.118.227.200 to 64.174.148.250 on interface GigabitEthernet0/1	0
