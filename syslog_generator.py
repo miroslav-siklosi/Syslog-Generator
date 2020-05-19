@@ -264,40 +264,40 @@ def fill_message(message):
             result += part
     return result
 
-def generate_log(add_label, gen_unseen):
+def generate_log(add_label, gen_seen):
     now = datetime.datetime.now().strftime("%b %d %Y %H:%M:%S")
     if add_label:
-        if gen_unseen: # add_label == True and gen_unseen == True
-            message, is_anomaly = pick_unseen_message()            
-        else: # add_label == True and gen_unseen == False
-            message, is_anomaly = pick_message()
+        if gen_seen: # add_label == True and gen_seen == True
+            message, is_anomaly = pick_message()    
+        else: # add_label == True and gen_seen == False
+            message, is_anomaly = pick_unseen_message()
         filled_message = fill_message(message)
         filled_message = f"{filled_message}\t{int(is_anomaly)}"
 
     else: # add_label == False
-        if gen_unseen: # add_label == False and gen_unseen == True
-            message, is_anomaly = pick_unseen_message()  
+        if gen_seen: # add_label == False and gen_seen == True
+            message, is_anomaly = pick_message()  
         else: # add_label == False and gen_unseen == False
-            message, is_anomaly = pick_message()
+            message, is_anomaly = pick_unseen_message()
         filled_message = fill_message(message)
     
     device = f"FW{str(random.randint(0, 25)).zfill(2)}" # generate device name
     log = f"{now} {device} : {filled_message}" # compose syslog message
     return log
 
-def generate_logs_file(log_count, add_label, gen_unseen, filename):
+def generate_logs_file(log_count, add_label, gen_seen, filename):
     with open(filename, "w") as logs_file:
         for i in range(log_count):
  #           print(f"Generating log number {i}") # TODO: Remove before publishing
-            log = f"{generate_log(add_label, gen_unseen)}\n"
+            log = f"{generate_log(add_label, gen_seen)}\n"
             logs_file.writelines((log))
           
 parser = argparse.ArgumentParser(prog="syslog_generator.py")
 parser.add_argument("--number", dest="number", type=int, required=False, default=100)
 parser.add_argument("--labelled", dest="labelled", choices=["yes", "no"], required=False, default="yes")
-parser.add_argument("--unseen", dest="unseen", choices=["yes", "no"], required=False, default="no")
+parser.add_argument("--seen", dest="seen", choices=["yes", "no"], required=False, default="yes")
 
 args = parser.parse_args()
 
-generate_logs_file(int(args.number), args.labelled == "yes", args.unseen == "yes", "logs.csv")
+generate_logs_file(int(args.number), args.labelled == "yes", args.seen == "yes", "logs.csv")
     
