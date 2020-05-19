@@ -277,7 +277,7 @@ def generate_log(add_label, gen_seen):
     else: # add_label == False
         if gen_seen: # add_label == False and gen_seen == True
             message, is_anomaly = pick_message()  
-        else: # add_label == False and gen_unseen == False
+        else: # add_label == False and gen_seen == False
             message, is_anomaly = pick_unseen_message()
         filled_message = fill_message(message)
     
