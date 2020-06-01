@@ -238,20 +238,20 @@ def pick_unseen_message():
         return random.choice(logTemplates.anomalous_unseen), True
     else:
         return random.choice(logTemplates.informational_unseen), False
-    
+  
 def fill_message(message):
     generators = {"source_address": generate_ip_address,
-                      "dest_address": generate_ip_address,
-                      "interface_name": generate_interface_name,
-                      "source_port": generate_port,
-                      "dest_port": generate_port,
-                      "local_address": generate_local_address,
-                      "remote_address": generate_remote_address,
-                      "user": generate_user,
-                      "url": generate_url,
-                      "mac_address": generate_mac_address,
-                      "number": generate_number,
-                      "service": generate_service}
+                  "dest_address": generate_ip_address,
+                  "interface_name": generate_interface_name,
+                  "source_port": generate_port,
+                  "dest_port": generate_port,
+                  "local_address": generate_local_address,
+                  "remote_address": generate_remote_address,
+                  "user": generate_user,
+                  "url": generate_url,
+                  "mac_address": generate_mac_address,
+                  "number": generate_number,
+                  "service": generate_service}
     
     parts = message.split("{")
     result = ""
@@ -288,10 +288,10 @@ def generate_log(add_label, gen_seen):
 def generate_logs_file(log_count, add_label, gen_seen, filename):
     with open(filename, "w") as logs_file:
         for i in range(log_count):
- #           print(f"Generating log number {i}") # TODO: Remove before publishing
             log = f"{generate_log(add_label, gen_seen)}\n"
             logs_file.writelines((log))
-          
+ 
+# PARSER
 parser = argparse.ArgumentParser(prog="syslog_generator.py")
 parser.add_argument("--number", dest="number", type=int, required=False, default=100)
 parser.add_argument("--labelled", dest="labelled", choices=["yes", "no"], required=False, default="yes")
